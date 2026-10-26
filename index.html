@@ -125,6 +125,11 @@ dialog[open]{animation:pop .3s ease both}
 footer{padding:26px 0;text-align:center;color:var(--mute);font-size:.9rem}
 #top{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));width:48px;height:48px;border-radius:50%;border:0;background:var(--acc);color:var(--on-acc);font-size:20px;cursor:pointer;opacity:0;pointer-events:none;transition:.3s;z-index:40}
 #top.show{opacity:1;pointer-events:auto}
+#mu{position:fixed;left:max(18px,env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));width:48px;height:48px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);color:var(--navy);cursor:pointer;z-index:40;display:grid;place-items:center;transition:transform .15s,background .2s}
+#mu[hidden]{display:none}
+#mu:active{transform:scale(.92)}
+#mu[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
+#mu svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--navy);color:var(--bg);padding:12px 20px;border-radius:12px;font-size:.92rem;opacity:0;pointer-events:none;transition:.3s;z-index:80;max-width:calc(100% - 32px);text-align:center}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 @media (max-width:820px){
@@ -200,6 +205,7 @@ section{padding:72px 0}
 <footer><div class="wrap">© <span id="yr"></span> <span data-cfg="name">[Nama Lengkap Anda]</span></div></footer>
 
 <button id="top" aria-label="Kembali ke atas">↑</button>
+<button id="mu" aria-label="Nyalakan musik" aria-pressed="false" hidden></button>
 <div id="toast" role="status" aria-live="polite"></div>
 <dialog id="dlg" aria-labelledby="dt"><div class="md" id="md"></div></dialog>
 
@@ -214,6 +220,7 @@ const CONFIG={
  linkedin:"https://www.linkedin.com/in/cickal-prabakti01",
  whatsapp:"6283171293220",
  cv:"",
+ music:"musik.mp3",   // file MP3 di repository yang sama. Kosongkan ("") untuk menyembunyikan tombol musik
  categories:["All Projects","Affiliate","Web Design","Clipping"],
  projects:[
   {t:"AFFILIATE",c:"Affiliate",d:"Affiliate marketing",goal:"Membangun pasif income",role:"Menghubungkan antara pemilik produk/brand dengan calon konsumen melalui rekomendasi dan tautan khusus (affiliate link)",tools:"Web, TikTok",process:"Serangkaian tahapan mulai dari pendaftaran hingga pencairan komisi",result:"Tindakan atau konversi nyata yang dilakukan oleh konsumen melalui tautan pelacakan unik (tracking link) milik afiliator",url:"https://cickalprabakti-commits.github.io/VOLTSHOP/"},
@@ -291,6 +298,19 @@ links.forEach(([l,h,m,p])=>{const a=document.createElement("a");a.className="btn
 if(h){a.href=h;if(!h.startsWith("mailto:")){a.target="_blank";a.rel="noopener"}if(l==="Download CV")a.setAttribute("download","")}
 else{a.href="#contact";a.setAttribute("aria-disabled","true");a.onclick=e=>{e.preventDefault();toast(m)}}
 $("#ct").appendChild(a)});
+
+/* musik: mati secara bawaan, pengunjung yang menyalakan */
+;(function(){const b=$("#mu");if(!CONFIG.music)return;b.hidden=false;let a=null;
+const off='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>';
+const on='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 6a9 9 0 010 12"/></svg>';
+function set(p){b.setAttribute("aria-pressed",p);b.setAttribute("aria-label",p?"Matikan musik":"Nyalakan musik");b.innerHTML=p?on:off}
+set(false);
+b.onclick=async()=>{
+ if(!a){a=new Audio(CONFIG.music);a.loop=true;a.volume=.3;a.addEventListener("error",()=>{set(false);toast("File musik tidak ditemukan.")})}
+ if(a.paused){try{await a.play();set(true)}catch(e){set(false)}}else{a.pause();set(false)}
+};
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&a&&!a.paused){a.pause();set(false)}});
+})();
 </script>
 </body>
 </html>
